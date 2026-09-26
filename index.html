@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Koks Lab // Rechner</title>
+    <style>
+      :root {
+        --bg: #07090a;
+        --bg-soft: #101314;
+        --panel: rgba(17, 19, 21, 0.96);
+        --panel-alt: rgba(21, 24, 25, 0.96);
+        --line: rgba(214, 168, 74, 0.26);
+        --text: #f7f2e8;
+        --muted: #b0aca0;
+        --gold: #d6a84a;
+        --gold-light: #f3d58b;
+        --gold-soft: rgba(214, 168, 74, 0.12);
+        --shadow: rgba(0, 0, 0, 0.46);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(214, 168, 74, 0.12), transparent 28%),
+          linear-gradient(180deg, #060708 0%, #0b0d0e 58%, #111416 100%);
+        color: var(--text);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 32px 32px;
+        opacity: 0.35;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.28));
+      }
+
+      .app {
+        width: min(1180px, calc(100% - 32px));
+        margin: 22px auto 40px;
+        background: rgba(10, 12, 15, 0.88);
+        border: 1px solid rgba(214, 168, 74, 0.22);
+        box-shadow: 0 18px 60px var(--shadow);
+        overflow: hidden;
+      }
+
+      .topbar {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        width: 100vw;
+        min-height: 286px;
+        margin-left: calc(50% - 50vw);
+        padding: 34px clamp(18px, 5vw, 54px) 34px;
+        border-bottom: 2px solid var(--gold);
+        overflow: hidden;
+        isolation: isolate;
+        background:
+          linear-gradient(90deg, rgba(8, 10, 11, 0.96) 0%, rgba(8, 10, 11, 0.72) 48%, rgba(8, 10, 11, 0.58) 100%),
+          linear-gradient(0deg, rgba(8, 10, 11, 0.85), transparent 55%),
+          url("logo.png") center 38% / cover no-repeat;
+      }
+
+      .topbar::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.42)),
+          repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.015),
+            rgba(255, 255, 255, 0.015) 1px,
+            transparent 1px,
+            transparent 24px
+          );
+        opacity: 0.8;
+      }
+
+      .brand,
+      .status {
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-text {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .eyebrow {
+        color: var(--gold-light);
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .brand-text strong {
+        display: block;
+        margin-top: 4px;
+        font-size: clamp(2.2rem, 4vw, 5.4rem);
+        line-height: 0.86;
+        letter-spacing: 0.03em;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--gold-light);
+        text-shadow: 0 0 15px rgba(214, 168, 74, 0.16);
+      }
+
+      .brand-text strong span {
+        color: #f3d58b;
+      }
+
+      .status {
+        padding-top: 8px;
+        text-align: right;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .status b {
+        color: #8bc58b;
+        font-weight: 700;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+        gap: 24px;
+        padding: 28px clamp(18px, 4vw, 34px) 30px;
+      }
+
+      .card {
+        position: relative;
+        background: linear-gradient(145deg, rgba(16, 18, 19, 0.96), rgba(12, 14, 15, 0.96));
+        border: 1px solid var(--line);
+        border-top: 2px solid rgba(214, 168, 74, 0.5);
+        padding: 24px 22px 20px;
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+      }
+
+      .card::before {
+        content: attr(data-index);
+        position: absolute;
+        top: 12px;
+        right: 18px;
+        font-weight: 900;
+        font-size: 4rem;
+        line-height: 1;
+        color: rgba(214, 168, 74, 0.09);
+      }
+
+      .card-head {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .card-num {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--gold);
+        color: var(--gold-light);
+        font-weight: 700;
+        font-size: 0.8rem;
+      }
+
+      .card h2 {
+        margin: 0;
+        font-size: 1.7rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--gold-light);
+      }
+
+      .sub {
+        position: relative;
+        z-index: 1;
+        margin: -4px 0 18px;
+        color: var(--muted);
+        font-size: 0.84rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .input-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      label {
+        min-width: 118px;
+        font-size: 0.76rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      input[type="number"] {
+        width: 100%;
+        background: rgba(8, 10, 11, 0.95);
+        border: 1px solid var(--line);
+        border-left: 2px solid rgba(214, 168, 74, 0.52);
+        color: var(--text);
+        border-radius: 0;
+        font-size: 1.05rem;
+        padding: 12px 14px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input[type="number"]:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(214, 168, 74, 0.1);
+      }
+
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(80px, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .result-box {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--line);
+        padding: 12px 10px 10px;
+      }
+
+      .result-box .label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .result-box strong {
+        display: block;
+        font-size: 1.5rem;
+        color: var(--gold-light);
+      }
+
+      .result-box .unit {
+        font-size: 0.74rem;
+        color: var(--muted);
+      }
+
+      .result-box .mini-value {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.72rem;
+        color: #d7c9a7;
+      }
+
+      .summary {
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+
+      .summary p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 0.94rem;
+      }
+
+      .summary strong {
+        color: var(--gold-light);
+      }
+
+      .reverse {
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+
+      .reverse-title {
+        margin-bottom: 12px;
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gold-light);
+      }
+
+      .reverse-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 12px;
+      }
+
+      .reverse-grid label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .reverse-grid input {
+        width: 100%;
+        background: rgba(8, 10, 11, 0.95);
+        border: 1px solid var(--line);
+        border-left: 2px solid rgba(214, 168, 74, 0.52);
+        color: var(--text);
+        border-radius: 0;
+        font-size: 0.96rem;
+        padding: 10px 12px;
+        outline: none;
+      }
+
+      .reverse-result {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .reverse-result strong {
+        color: var(--gold-light);
+        font-size: 1.6rem;
+        letter-spacing: 0.03em;
+      }
+
+      .formula {
+        margin-top: 14px;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 0.87rem;
+      }
+
+      .formula strong {
+        color: var(--text);
+      }
+
+      @media (max-width: 760px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          flex-direction: column;
+          justify-content: center;
+          align-items: flex-start;
+          min-height: 220px;
+        }
+
+        .status {
+          text-align: left;
+          padding-top: 0;
+        }
+
+        .input-row {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        label {
+          min-width: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-text">
+            <span class="eyebrow">Shadow District</span>
+            <strong>Koks <span>Lab</span></strong>
+          </div>
+        </div>
+        <div class="status">System status<br /><b>● Live Recipe</b></div>
+      </header>
+
+      <main class="content">
+        <section class="card" data-index="01">
+          <div class="card-head">
+            <div class="card-num">01</div>
+            <h2>Koks herstellen</h2>
+          </div>
+          <div class="sub">Grundrezept</div>
+
+          <div class="input-row">
+            <label for="cokeAmount">Koks</label>
+            <input id="cokeAmount" type="number" min="1" value="10" />
+          </div>
+
+          <div class="result-grid">
+            <div class="result-box">
+              <span class="label">Benzin</span>
+              <strong id="benzinValue">25</strong>
+              <span class="unit">%</span>
+              <span class="mini-value" id="benzinAmount">0.25 Kanister</span>
+            </div>
+            <div class="result-box">
+              <span class="label">Chemikalien</span>
+              <strong id="chemicalValue">5.00</strong>
+            </div>
+            <div class="result-box">
+              <span class="label">Blätter</span>
+              <strong id="leafValue">15.00</strong>
+            </div>
+          </div>
+
+          <div class="summary">
+            <p><strong>Rezept:</strong> Für 10 Koks brauchst du 25% Benzin, 5 Chemikalien und 15 Koks-Blätter. 1 Kanister entspricht 40 Koks.</p>
+          </div>
+
+          <div class="reverse">
+            <div class="reverse-title">Materialien → Koks</div>
+            <div class="reverse-grid">
+              <div>
+                <label for="benzinInput">Benzin</label>
+                <input id="benzinInput" type="number" min="0" step="0.1" value="10" oninput="updateKoksFromMaterials()" />
+              </div>
+              <div>
+                <label for="chemicalInput">Chemikalien</label>
+                <input id="chemicalInput" type="number" min="0" step="1" value="10" oninput="updateKoksFromMaterials()" />
+              </div>
+              <div>
+                <label for="leafInput">Blätter</label>
+                <input id="leafInput" type="number" min="0" step="1" value="10" oninput="updateKoksFromMaterials()" />
+              </div>
+              <div>
+                <label for="packagingInput">Verpackung</label>
+                <input id="packagingInput" type="number" min="0" step="1" value="10" oninput="updateKoksFromMaterials()" />
+              </div>
+            </div>
+            <div class="reverse-result">
+              <span>Maximal herstellbarer Koks</span>
+              <strong id="koksFromMaterialsOutput">0</strong>
+            </div>
+          </div>
+
+          <p class="formula"><strong>1 Koks</strong> = 2,5 Benzin + 0,5 Chemikalien + 1,5 Blätter + 1 Verpackung</p>
+        </section>
+
+        <section class="card" data-index="02">
+          <div class="card-head">
+            <div class="card-num">02</div>
+            <h2>Verpackter Koks</h2>
+          </div>
+          <div class="sub">Verpackung</div>
+
+          <div class="input-row">
+            <label for="packagedAmount">Verpackter Koks</label>
+            <input id="packagedAmount" type="number" min="1" value="1" />
+          </div>
+
+          <div class="result-grid">
+            <div class="result-box">
+              <span class="label">Koks</span>
+              <strong id="packagedCokeValue">10</strong>
+            </div>
+            <div class="result-box">
+              <span class="label">Verpackung</span>
+              <strong id="packagingValue">1</strong>
+            </div>
+            <div class="result-box">
+              <span class="label">Gesamt</span>
+              <strong id="packagingTotal">11</strong>
+            </div>
+          </div>
+
+          <div class="summary">
+            <p><strong>Rezept:</strong> Für 1 verpackten Koks brauchst du 10 Koks und 1 Verpackungsmaterial.</p>
+          </div>
+
+          <div class="reverse">
+            <div class="reverse-title">Materialien → verpackter Koks</div>
+            <div class="reverse-grid">
+              <div>
+                <label for="cokeForPackInput">Koks</label>
+                <input id="cokeForPackInput" type="number" min="0" step="1" value="20" oninput="updatePackagedKoksFromMaterials()" />
+              </div>
+              <div>
+                <label for="packagingForPackInput">Verpackung</label>
+                <input id="packagingForPackInput" type="number" min="0" step="1" value="10" oninput="updatePackagedKoksFromMaterials()" />
+              </div>
+            </div>
+            <div class="reverse-result">
+              <span>Maximal verpackbarer Koks</span>
+              <strong id="packagedKoksFromMaterialsOutput">0</strong>
+            </div>
+          </div>
+
+          <p class="formula"><strong>1 verpackter Koks</strong> = 10 Koks + 1 Verpackung</p>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const cokeAmount = document.getElementById("cokeAmount");
+      const benzinValue = document.getElementById("benzinValue");
+      const benzinAmount = document.getElementById("benzinAmount");
+      const chemicalValue = document.getElementById("chemicalValue");
+      const leafValue = document.getElementById("leafValue");
+
+      const packagedAmount = document.getElementById("packagedAmount");
+      const packagedCokeValue = document.getElementById("packagedCokeValue");
+      const packagingValue = document.getElementById("packagingValue");
+      const packagingTotal = document.getElementById("packagingTotal");
+
+      function formatNumber(value) {
+        return Number(value).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+      }
+
+      function updateCokeCalculator() {
+        const amount = Math.max(0, Number(cokeAmount.value) || 0);
+        const benzinPercent = amount * 2.5;
+        const benzinCanisters = amount * 0.025;
+        const chemicals = amount * 0.5;
+        const leaves = amount * 1.5;
+
+        benzinValue.textContent = formatNumber(benzinPercent);
+        benzinAmount.textContent = `${formatNumber(benzinCanisters)} Kanister`;
+        chemicalValue.textContent = formatNumber(chemicals);
+        leafValue.textContent = formatNumber(leaves);
+      }
+
+      function updatePackagedCalculator() {
+        const amount = Math.max(0, Number(packagedAmount.value) || 0);
+        const cokeNeeded = amount * 10;
+        const packagingNeeded = amount * 1;
+        const totalNeeded = cokeNeeded + packagingNeeded;
+
+        packagedCokeValue.textContent = formatNumber(cokeNeeded);
+        packagingValue.textContent = formatNumber(packagingNeeded);
+        packagingTotal.textContent = formatNumber(totalNeeded);
+      }
+
+      function updateKoksFromMaterials() {
+        const benzin = Math.max(0, Number(document.getElementById("benzinInput").value) || 0) / 2.5;
+        const chemicals = Math.max(0, Number(document.getElementById("chemicalInput").value) || 0) / 0.5;
+        const leaves = Math.max(0, Number(document.getElementById("leafInput").value) || 0) / 1.5;
+        const packaging = Math.max(0, Number(document.getElementById("packagingInput").value) || 0) / 1;
+
+        const maxCoke = Math.floor(Math.min(benzin, chemicals, leaves, packaging));
+        document.getElementById("koksFromMaterialsOutput").textContent = formatNumber(maxCoke);
+      }
+
+      function updatePackagedKoksFromMaterials() {
+        const coke = Math.max(0, Number(document.getElementById("cokeForPackInput").value) || 0) / 10;
+        const packaging = Math.max(0, Number(document.getElementById("packagingForPackInput").value) || 0) / 1;
+
+        const maxPackagedCoke = Math.floor(Math.min(coke, packaging));
+        document.getElementById("packagedKoksFromMaterialsOutput").textContent = formatNumber(maxPackagedCoke);
+      }
+
+      cokeAmount.addEventListener("input", updateCokeCalculator);
+      packagedAmount.addEventListener("input", updatePackagedCalculator);
+      document.getElementById("benzinInput").addEventListener("input", updateKoksFromMaterials);
+      document.getElementById("chemicalInput").addEventListener("input", updateKoksFromMaterials);
+      document.getElementById("leafInput").addEventListener("input", updateKoksFromMaterials);
+      document.getElementById("packagingInput").addEventListener("input", updateKoksFromMaterials);
+      document.getElementById("cokeForPackInput").addEventListener("input", updatePackagedKoksFromMaterials);
+      document.getElementById("packagingForPackInput").addEventListener("input", updatePackagedKoksFromMaterials);
+
+      updateCokeCalculator();
+      updatePackagedCalculator();
+      updateKoksFromMaterials();
+      updatePackagedKoksFromMaterials();
+    </script>
+  </body>
+</html>
